@@ -1,0 +1,39 @@
+name: steve_test_project
+language: java
+pipeline: build_bake_test_deployment:v0.1
+security:
+  keys_loc: "conf/"
+notification:
+  type: slack
+  domain: 
+  channel: qubeship
+build:
+  skip: false
+  image:
+    name: maven:3.3-jdk-8-onbuild
+    onbuild:
+      - mvn package
+  publish_artifact: target/
+  lint: true
+bake:
+  skip: false
+  strategy: docker
+  script: Dockerfile
+  repositories:
+    - name: google
+      prefix: gcr.io/qubeship-partners
+      type: gcr
+test:
+  skip: true
+  functional:
+    provider: qubeship-sg
+deployment:
+  skip: false
+  continuous_deployment: true
+  service_name: steve
+  environments:
+    prod:
+      - type: qubeship_managed
+        id: 58af26901d78010006adca39
+        template_id: qube_external_app_v1
+        srcRepo: google
